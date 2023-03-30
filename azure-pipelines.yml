@@ -7,13 +7,22 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: ubuntu-18.04
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  - task: Maven@3
+    displayName: 'Maven pom.xml'
+    options: '-DskipITs --settings ./maven/settings.xml'
+  - task: CopyFiles@2
+    displayName: 'Copy Files'
+    inputs:
+    SourceFolder: '$(build.sourcesdirectory)'
+    Contents: |
+    **/target/*.war
+    *.sql
+    TargetFolder: '$(build.artifactstagingdirectory)'
+ 
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact'
+    inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
